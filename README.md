@@ -385,9 +385,9 @@ The operation logic of the project is given in the `Main` function of `node.py`.
 
 * Check if the target peer is NATed. 
 
-* If the target peer is NATed, use the function `get_relay_peer` to find the best relaying peer. Define the JSON format of a `RELAY` message, which should include `{message type, sender's ID, target peer's ID, `payload`}`. `payload` is the sending message. Send the `RELAY` message to the best relaying peer using the function `send_message`.
+* If the target peer is NATed and in a different local network, use the function `get_relay_peer` to find the best relaying peer. Define the JSON format of a `RELAY` message, which should include `{message type, sender's ID, target peer's ID, `payload`}`. `payload` is the sending message. Send the `RELAY` message to the best relaying peer using the function `send_message`.
   
-* If the target peer is non-NATed, send the message to the target peer using the function `send_message`.
+* If the target peer is non-NATed or in the same local network, send the message to the target peer using the function `send_message`.
 
 6. `get_relay_peer`
 
