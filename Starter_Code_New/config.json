@@ -16,7 +16,8 @@
       "ip": "172.28.0.12",
       "port": 5002,
       "fanout":1,
-      "nat": true
+      "nat": true,
+      "localnetworkid":1
     },
     "5003": {
       "ip": "172.28.0.13",
@@ -47,7 +48,8 @@
       "ip": "172.28.0.17",
       "port": 5007,
       "fanout":1,
-      "nat": true
+      "nat": true,
+      "localnetworkid":2
     },
     "5008": {
       "ip": "172.28.0.18",
@@ -65,9 +67,7 @@
     "5010": {
       "ip": "172.28.0.20",
       "port": 5010,
-      "fanout":1,
-      "nat": true,
-      "localnetworkid":2
+      "fanout":1
     }
   }
 }
