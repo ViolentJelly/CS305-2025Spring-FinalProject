@@ -15,7 +15,7 @@ def start_socket_server(self_id, self_ip, port):
         tcp_socket.bind(self_ip,port)
 
         # TODO: Start listening on the socket for receiving incoming messages.
-        tcp_socket.listen(5)
+        tcp_socket.listen(10)
 
         # TODO: When receiving messages, pass the messages to the function `dispatch_message` in `message_handler.py`.
         def handle_connection(conn, addr):
@@ -47,14 +47,11 @@ def start_socket_server(self_id, self_ip, port):
             conn, addr = tcp_socket.accept()
             threading.Thread(
                 target=handle_connection,
-                args=(conn,),
+                args=(conn,addr),
                 daemon=True
             ).start()
 
 
-
-
-
     # ✅ Run listener in background
     threading.Thread(target=listen_loop, daemon=True).start()
-
+    print(f"[{self_id}] Socket server started successfully", flush=True)
