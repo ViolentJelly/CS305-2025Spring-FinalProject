@@ -29,16 +29,15 @@ def start_socket_server(self_id, self_ip, port):
                     if not data:
                         break
                     buffer += (b'\n'+data)
-                    print("buffer1: ",{buffer})
+                    # print("buffer1: ",{buffer})
                     # 处理缓冲区中的所有完整消息（以换行符分隔）
                     while b'\n' in buffer:
                         message_line, buffer = buffer.split(b'\n', 1)
-                        print("buffer3: ",{buffer})
+                        # print("buffer3: ",{buffer})
                         if message_line:
                             try:
-                                print("buffer2: ",{buffer})
-                                #need json
-                                message = json.loads(message_line.decode('utf-8'))
+                                # print("buffer2: ",{buffer})
+                                message = message_line.decode('utf-8')
                                 dispatch_message(message, self_id, self_ip)
                             except json.JSONDecodeError:
                                 print(f"wrong JSON: {message_line}")

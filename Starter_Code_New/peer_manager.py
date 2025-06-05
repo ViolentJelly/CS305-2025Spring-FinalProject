@@ -69,8 +69,8 @@ def start_ping_loop(self_id, peer_table):
                    # 添加到发送队列
                    enqueue_message(peer_id, ip, port, ping_msg)
 
-                   # 每10秒检查一次
-               time.sleep(10)
+                   # 每60秒检查一次
+               time.sleep(60)
 
            except Exception as e:
                print(f"[{self_id}] Ping loop error: {e}", flush=True)
@@ -93,10 +93,10 @@ def handle_pong(msg):
     # TODO: Read the information in the received `pong` message.
     try:
         sender_id = msg["sender"]
-        # ping_time = msg["ping_timestamp"]
-        # pong_time = msg["pong_timestamp"]
-        ping_time = msg["timestamp"]  # PING发送时间
-        pong_time = time.time()  # PONG接收时间
+        ping_time = msg["ping_timestamp"]
+        pong_time = msg["pong_timestamp"]
+        # ping_time = msg["timestamp"]  # PING发送时间
+        # pong_time = time.time()  # PONG接收时间
 
         # 计算RTT（往返时间）
         rtt = pong_time - ping_time

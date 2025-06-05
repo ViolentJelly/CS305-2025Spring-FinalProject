@@ -16,7 +16,7 @@ RETRY_INTERVAL = 5  # seconds
 QUEUE_LIMIT = 50
 
 # Priority levels
-PRIORITY_HIGH = {"PING", "PONG", "BLOCK", "INV", "GETDATA"}
+PRIORITY_HIGH = {"PING", "PONG", "BLOCK", "INV", "GETBLOCK"}
 PRIORITY_MEDIUM = {"TX", "HELLO"}
 PRIORITY_LOW = {"RELAY"}
 
@@ -95,6 +95,7 @@ def enqueue_message(target_id, ip, port, message):
             'retries': 0,
             'timestamp': time.time()
         })
+        #print(f"[Enqueued] To {target_id}: {message['type']}")
         return True
 
 
@@ -153,6 +154,8 @@ def send_from_queue(self_id):
                 queues[target_id][highest_priority].popleft()
             # TODO: Send the message using the function `relay_or_direct_send`, which will decide whether to send the message to target peer directly or through a relaying peer.
             success = relay_or_direct_send(self_id, target_id, message_data['message'])
+            #if success:
+            #    print("send successfully")
             # TODO: Retry a message if it is sent unsuccessfully and drop the message if the retry times exceed the limit `MAX_RETRIES`.
             if not success and message_data['retries'] < MAX_RETRIES:
                 message_data['retries'] += 1
@@ -161,7 +164,7 @@ def send_from_queue(self_id):
                 time.sleep(RETRY_INTERVAL)
 
             time.sleep(0.01)
-        pass
+
 
     threading.Thread(target=worker, daemon=True).start()
 
@@ -178,8 +181,9 @@ def relay_or_direct_send(self_id, dst_id, message):
                 'type': 'RELAY',
                 'sender': self_id,
                 'target': dst_id,
-                'payload': json.loads(message)  ##为什么不直接使用message？？
+                'payload': message  ##为什么不直接使用message？？
             })
+
             return send_message(relay_ip, relay_port, relay_msg)
     # TODO: If the target peer is NATed, use the function `get_relay_peer` to find the best relaying peer.
     # Define the JSON format of a `RELAY` message, which should include `{message type, sender's ID, target peer's ID, `payload`}`.
@@ -253,11 +257,12 @@ def send_message(ip, port, message):
         # 创建TCP socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             # 设置超时时间
-            s.settimeout(2)
+            s.settimeout(5)
             # 连接目标节点
             s.connect((ip, port))
             # 发送消息
             s.sendall(message.encode())
+
             return True
     except Exception as e:
         # 记录失败统计
@@ -309,7 +314,7 @@ def gossip_message(self_id, message, fanout=3):
 
     # Select random peers
     selected = random.sample(candidates, min(config_fanout, len(candidates)))
-
+    print(f"[GOSSIP] From {self_id}: {msg_type} -> {len(selected)} peers")
     # Enqueue messages
     for peer_id, ip, port in selected:
         enqueue_message(peer_id, ip, port, message)
@@ -344,4 +349,3 @@ def get_capacity():
         "current_tokens": rate_limiter.tokens,
         "drop_stats": drop_stats
     }
-
