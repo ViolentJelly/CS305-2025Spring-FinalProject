@@ -3,6 +3,8 @@ import time
 import hashlib
 import json
 import threading
+
+# from inv_message import broadcast_inventory
 from transaction import get_recent_transactions, clear_pool, TransactionMessage
 from peer_discovery import known_peers, peer_config, peer_flags
 
@@ -83,6 +85,7 @@ def request_block_sync(self_id):
 def block_generation(self_id, MALICIOUS_MODE, interval=30):
     from inv_message import create_inv
     from outbox import gossip_message
+    from inv_message import broadcast_inventory
     def mine():
     # TODO: Create a new block periodically using the function `create_dummy_block`.
         while True:
@@ -105,7 +108,7 @@ def block_generation(self_id, MALICIOUS_MODE, interval=30):
                 # TODO: Create an `INV` message for the new block using the function `create_inv` in `inv_message.py`.
                 # 创建INV消息并广播
                 inv_msg = create_inv(str(self_id), [new_block.hash])
-
+                broadcast_inventory(self_id)
                 # TODO: Broadcast the `INV` message to known peers using the function `gossip` in `outbox.py`.
                 gossip_message(str(self_id), inv_msg)
 
@@ -168,6 +171,7 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
 
 def receive_block(block, self_id):
     """处理新区块（内部函数）"""
+    from inv_message import broadcast_inventory
     # 检查前一个区块是否存在
     if block.prev_hash == "0" * 64 or any(b.hash == block.prev_hash for b in received_blocks):
         # 添加到主链
@@ -187,6 +191,7 @@ def receive_block(block, self_id):
         if block.hash in orphan_blocks:
             for orphan in orphan_blocks[block.hash]:
                 receive_block(orphan, self_id)
+                broadcast_inventory(self_id)
             del orphan_blocks[block.hash]
     else:
         # 添加到孤儿块
@@ -201,6 +206,7 @@ def compute_block_hash(block):
 
 def handle_block(msg, self_id):
     # TODO: Check the correctness of `block ID` in the received block. If incorrect, drop the block and record the sender's offence.
+    from inv_message import broadcast_inventory
     try:
         # 转换消息为区块对象
         block = Block.from_dict(msg)
@@ -221,7 +227,7 @@ def handle_block(msg, self_id):
 
         # 处理新区块 后两个todo在receive_block里完成
         receive_block(block, self_id)
-
+        broadcast_inventory(self_id)
     except KeyError as e:
         print(f"[{self_id}] Block message missing key: {e}", flush=True)
         record_offense(msg.get("creator", "unknown"))
@@ -241,9 +247,16 @@ def create_getblock(sender_id, requested_ids):
 
 def get_block_by_id(block_id):
     # TODO: Return the block in the local blockchain based on the block ID.
+    # 1. 在主链中查找
     for block in received_blocks:
         if block.hash == block_id:
             return block
+
+    # 2. 在孤儿区块中查找
+    for parent_hash, blocks in orphan_blocks.items():
+        for block in blocks:
+            if block.hash == block_id:
+                return block
     return None
 
 def get_block_headers(self_id):
