@@ -10,7 +10,9 @@ from outbox import  enqueue_message, gossip_message
 from utils import generate_message_id
 from peer_manager import record_offense, is_peer_blacklisted
 
-
+received_blocks = [] # The local blockchain. The blocks are added linearly at the end of the set.
+header_store = [] # The header of blocks in the local blockchain. Used by lightweight peers.
+orphan_blocks = {} # The block whose previous block is not in the local blockchain. Waiting for the previous block.
 class Block:
     def __init__(self, creator, transactions, prev_hash, timestamp=None):
         self.type = "BLOCK"
@@ -49,10 +51,6 @@ class Block:
             prev_hash=data["prev_hash"],
             timestamp=data["timestamp"]
         )
-
-received_blocks = [] # The local blockchain. The blocks are added linearly at the end of the set.
-header_store = [] # The header of blocks in the local blockchain. Used by lightweight peers.
-orphan_blocks = {} # The block whose previous block is not in the local blockchain. Waiting for the previous block.
 
 def request_block_sync(self_id):
     # TODO: Define the JSON format of a `GET_BLOCK_HEADERS`, which should include `{message type, sender's ID}`.
@@ -188,6 +186,8 @@ def handle_block(msg, self_id):
             return
     # TODO: Check if the previous block of the block exists in the local blockchain. If not, add the block to the list of orphaned blocks (`orphan_blocks`). If yes, add the block to the local blockchain.
     # TODO: Check if the block is the previous block of blocks in `orphan_blocks`. If yes, add the orphaned blocks to the local blockchain.
+
+
         # 处理新区块 后两个todo在receive_block里完成
         receive_block(block, self_id)
 
