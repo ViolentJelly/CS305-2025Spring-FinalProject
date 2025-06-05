@@ -30,6 +30,10 @@ drop_stats = {
     "HELLO": 0,
     "PING": 0,
     "PONG": 0,
+    "INV": 0,
+    "GETBLOCK":0,
+    "GET_BLOCK_HEADERS":0,
+    "BLOCK_HEADERS":0,
     "OTHER": 0
 }
 

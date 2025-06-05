@@ -33,40 +33,51 @@ def home():
 @app.route('/blocks')
 def blocks():
     # TODO: display the blocks in the local blockchain.
-    if peer_config_ref[self_id].get("light", False):
-        headers = [{
-            "hash": header["hash"],
-            "prev_hash": header["prev_hash"],
-            "timestamp": header["timestamp"]
-        } for header in get_block_headers(self_id)]
-        # print(jsonify({
-        #     "node_type": "light",
-        #     "block_count": len(headers),
-        #     "headers": headers
-        # }))
-        return jsonify({
-            "node_type": "light",
-            "block_count": len(headers),
-            "headers": headers
-        })
-    else:
-        blocks = [{
-            "hash": block.hash,
-            "prev_hash": block.prev_hash,
-            "creator": block.creator,
-            "timestamp": block.timestamp,
-            "tx_count": len(block.transactions)
-        } for block in received_blocks]
-        # print(jsonify({
-        #     "node_type": "full",
-        #     "block_count": len(blocks),
-        #     "blocks": blocks
-        # }))
-        return jsonify({
-            "node_type": "full",
-            "block_count": len(blocks),
-            "blocks": blocks
-        })
+    try:
+        # 确保 peer_config_ref 和 self_id 有效
+        if not peer_config_ref or not self_id:
+            return jsonify({"error": "Configuration not initialized1 with id: ","peer_config_ref":peer_config_ref}), 500
+
+        # 确保节点配置存在
+        peer_config = peer_config_ref.get(self_id, {})
+        is_light = peer_config.get("light", False)
+
+        if is_light:
+            # 轻节点模式 - 使用区块头
+            headers = get_block_headers(self_id)
+            if not isinstance(headers, list):
+                return jsonify({"error": "Block headers not available"}), 500
+
+            return jsonify({
+                "node_type": "light",
+                "block_count": len(headers),
+                "headers": headers
+            })
+        else:
+            # 全节点模式 - 使用完整区块
+            if not received_blocks or not isinstance(received_blocks, list):
+                return jsonify({"error": "Blockchain not initialized2"}), 500
+
+            blocks = []
+            for block in received_blocks:
+                # 确保区块对象有必要的属性
+                if hasattr(block, 'hash') and hasattr(block, 'prev_hash'):
+                    blocks.append({
+                        "hash": block.hash,
+                        "prev_hash": block.prev_hash,
+                        "creator": block.creator,
+                        "timestamp": block.timestamp,
+                        "tx_count": len(block.transactions) if hasattr(block, 'transactions') else 0
+                    })
+
+            return jsonify({
+                "node_type": "full",
+                "block_count": len(blocks),
+                "blocks": blocks
+            })
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to retrieve blocks: {str(e)}"}), 500
 
 @app.route('/peers')
 def peers():
@@ -123,21 +134,36 @@ def capacity():
 
 @app.route('/orphans')
 def orphan_blocks():
+    from block_handler import received_blocks, get_block_headers, orphan_blocks as orphan_blocks_dict
     # TODO: display the orphaned blocks.
-    orphans = []
-    for prev_hash, blocks_list in orphan_blocks.items():
-        for block in blocks_list:
-            orphans.append({
-                "hash": block.hash,
-                "prev_hash": block.prev_hash,
-                "creator": block.creator,
-                "timestamp": block.timestamp
-            })
-    return jsonify({
-        "orphan_count": len(orphans),
-        "orphans": orphans
-    })
-    pass
+    try:
+        orphans = []
+
+        # 确保 orphan_blocks_dict 是字典类型
+        if not isinstance(orphan_blocks_dict, dict):
+            return jsonify({"error": "Orphan blocks data not available"}), 500
+
+        for prev_hash, blocks_list in orphan_blocks_dict.items():
+            if not isinstance(blocks_list, list):
+                continue
+
+            for block in blocks_list:
+                # 确保区块对象有必要的属性
+                if hasattr(block, 'hash') and hasattr(block, 'prev_hash'):
+                    orphans.append({
+                        "hash": block.hash,
+                        "prev_hash": block.prev_hash,
+                        "creator": block.creator,
+                        "timestamp": block.timestamp
+                    })
+
+        return jsonify({
+            "orphan_count": len(orphans),
+            "orphans": orphans
+        })
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to retrieve orphan blocks: {str(e)}"}), 500
 
 @app.route('/queue')
 def message_queue():

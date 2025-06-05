@@ -134,6 +134,7 @@ services:
 
 networks:
   p2pnet:
+#    name: p2pnet
     driver: bridge
     ipam:
       config:

@@ -1,3 +1,5 @@
+import peer_discovery
+
 print("=== NODE.PY LOADED ===", flush=True)
 
 import json
@@ -7,18 +9,19 @@ import time
 import traceback
 from peer_discovery import start_peer_discovery, known_peers, peer_flags, peer_config
 from block_handler import block_generation, request_block_sync
-from message_handler import cleanup_seen_messages
+# from message_handler import cleanup_seen_messages
 from socket_server import start_socket_server
 from dashboard import start_dashboard
 from peer_manager import start_peer_monitor, start_ping_loop
-from outbox import send_from_queue
-from link_simulator import start_dynamic_capacity_adjustment
+from outbox import send_from_queue, start_dynamic_capacity_adjustment
+# from link_simulator import start_dynamic_capacity_adjustment
 from inv_message import broadcast_inventory
 from transaction import transaction_generation
 
 def main():
-    
+
     # Import the peer's configuration from command line
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", required=True)
     parser.add_argument("--config", default="config.json")
@@ -34,6 +37,8 @@ def main():
     with open(args.config) as f:
         config = json.load(f)
 
+    # 更新 peer_discovery 模块中的全局变量
+    peer_discovery.peer_config = config["peers"]
     self_info = config["peers"][self_id]
 
     peer_flags[self_id] = {
@@ -43,7 +48,11 @@ def main():
 
     for peer_id, peer_info in config["peers"].items():
         known_peers[peer_id] = (peer_info["ip"], peer_info["port"])
-        peer_config = config["peers"]
+        # peer_config = config["peers"]
+        peer_discovery.peer_flags[peer_id] = {
+            "nat": peer_info.get("nat", False),
+            "light": peer_info.get("light", False)
+        }
 
     if args.fanout:
         peer_config[self_id]["fanout"] = args.fanout

@@ -12,7 +12,7 @@ def start_socket_server(self_id, self_ip, port):
         # TODO: Create a TCP socket and bind it to the peer’s IP address and port.
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        tcp_socket.bind(self_ip,port)
+        tcp_socket.bind((self_ip,port))
 
         # TODO: Start listening on the socket for receiving incoming messages.
         tcp_socket.listen(10)
