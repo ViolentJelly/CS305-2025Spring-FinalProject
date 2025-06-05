@@ -4,8 +4,10 @@ import hashlib
 import random
 import threading
 from peer_discovery import known_peers
-from outbox import gossip_message
+from outbox import gossip_message, enqueue_message
 from peer_manager import is_peer_blacklisted
+from utils import generate_message_id
+
 
 class TransactionMessage:
     def __init__(self, sender, receiver, amount, timestamp=None):
@@ -33,7 +35,8 @@ class TransactionMessage:
             "from": self.from_peer,
             "to": self.to_peer,
             "amount": self.amount,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
+            "message_id": generate_message_id()
         }
 
     @staticmethod
@@ -79,7 +82,8 @@ def transaction_generation(self_id, interval=15):
                 # 广播交易
                 print(f"[{self_id}] Broadcasting TX: {tx.id}", flush=True)
                 gossip_message(self_id, tx.to_dict())
-
+                # for peer_id, (ip, port) in known_peers:
+                #     enqueue_message(peer_id, ip, port, tx.to_dict())
                 # 等待间隔
                 time.sleep(interval)
 

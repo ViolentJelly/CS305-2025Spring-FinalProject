@@ -33,10 +33,10 @@ def start_socket_server(self_id, self_ip, port):
                     # 处理缓冲区中的所有完整消息（以换行符分隔）
                     while b'\n' in buffer:
                         message_line, buffer = buffer.split(b'\n', 1)
-                        # print("buffer3: ",{buffer})
+                        print("buffer3: ",{buffer})
                         if message_line:
                             try:
-                                # print("buffer2: ",{buffer})
+                                print("message_line: ",{message_line})
                                 message = message_line.decode('utf-8')
                                 dispatch_message(message, self_id, self_ip)
                             except json.JSONDecodeError:

@@ -195,7 +195,7 @@ def dispatch_message(msg, self_id, self_ip):
             while retry_count < max_retries and missing_ids:
                 # 3.1 向其他节点请求缺失的区块
                 getblock_msg = create_getblock(self_id, missing_ids)
-                # gossip_message(self_id,getblock_msg)
+                gossip_message(self_id,getblock_msg)
                 for peer_id, (ip, port) in known_peers.items():
                     if peer_id != self_id and peer_id != sender_id:
                         enqueue_message(peer_id, ip, port, getblock_msg)

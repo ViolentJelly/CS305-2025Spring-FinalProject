@@ -38,7 +38,8 @@ class Block:
             "creator": self.creator,
             "prev_hash": self.prev_hash,
             "timestamp": self.timestamp,
-            "transactions": [tx.to_dict() for tx in self.transactions]
+            "transactions": [tx.to_dict() for tx in self.transactions],
+            "message_id": generate_message_id()
         }
 
     # {message type, peer's ID, timestamp, block ID, previous block's ID, and transactions}
@@ -79,7 +80,7 @@ def request_block_sync(self_id):
         enqueue_message(peer_id, ip, port, get_headers_msg)
     pass
 
-def block_generation(self_id, MALICIOUS_MODE, interval=100):
+def block_generation(self_id, MALICIOUS_MODE, interval=30):
     from inv_message import create_inv
     from outbox import gossip_message
     def mine():
@@ -157,8 +158,8 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
 
     # TODO: Clear the local transaction pool and add the new block into the local blockchain (`receive_block`).
     # 清空交易池
-    # clear_pool()
-    time.sleep(60)
+    clear_pool()
+    time.sleep(30)
     # 添加到本地区块链
     receive_block(block, peer_id)
 
