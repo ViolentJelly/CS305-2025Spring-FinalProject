@@ -24,8 +24,9 @@ def create_inv(sender_id, block_ids):
 def get_inventory(self_id):
     # TODO: Return the block ID of all blocks in the local blockchain.
     """获取本地库存（所有区块ID）"""
+    node_config = peer_config.get(self_id, {})
     # 轻节点只返回区块头哈希
-    if peer_config[self_id].get("light", False):
+    if node_config.get("light", False):
         return [header["hash"] for header in header_store]
     # 全节点返回完整区块哈希
     return [block.hash for block in received_blocks]

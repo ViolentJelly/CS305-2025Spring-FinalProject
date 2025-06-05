@@ -90,7 +90,11 @@ def handle_hello_message(msg, self_id):
         if sender_id not in known_peers:
             # 添加到已知节点
             known_peers[sender_id] = (ip, port)
-            peer_flags[sender_id] = flags
+            peer_flags[sender_id] = {
+                "nat": flags.get("nat", False),
+                "light": flags.get("light", False),
+                "localnetworkid": sender_network_id  # 新增
+            }
             new_peers.append(sender_id)
             print(f"[{self_id}] Discovered new peer: {sender_id} at {ip}:{port}", flush=True)
 

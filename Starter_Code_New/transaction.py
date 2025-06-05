@@ -97,6 +97,7 @@ def add_transaction(tx):
 
     # TODO: Add the transaction ID to `tx_ids`.
     # 添加到交易池
+    print("add transaction3 from ", {tx.from_peer}, " to ", {tx.to_peer})
     tx_pool.append(tx)
     tx_ids.add(tx.id)
     return True

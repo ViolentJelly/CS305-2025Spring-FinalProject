@@ -16,8 +16,8 @@ RETRY_INTERVAL = 5  # seconds
 QUEUE_LIMIT = 50
 
 # Priority levels
-PRIORITY_HIGH = {"PING", "PONG", "BLOCK", "INV", "GETBLOCK"}
-PRIORITY_MEDIUM = {"TX", "HELLO"}
+PRIORITY_HIGH = {"PING", "PONG", "BLOCK", "INV"}
+PRIORITY_MEDIUM = {"TX", "HELLO", "GETBLOCK"}
 PRIORITY_LOW = {"RELAY"}
 
 DROP_PROB = 0.05
@@ -85,6 +85,8 @@ def enqueue_message(target_id, ip, port, message):
         # Check queue limit
         total_queued = sum(len(q) for q in queues[target_id].values())
         if total_queued >= QUEUE_LIMIT:
+            msg_type = message.get('type', 'OTHER')
+            drop_stats[msg_type] += 1
             return False
 
         # Add to queue
@@ -147,7 +149,7 @@ def send_from_queue(self_id):
                             message_data = queue[0]
 
                 if not target_id:
-                    time.sleep(0.1)
+                    time.sleep(0.01)
                     continue
 
                 # Remove from queue
@@ -332,7 +334,9 @@ def get_outbox_status():
                         'priority': priority,
                         'message': item['message'],
                         'retries': item['retries'],
-                        'timestamp': item['timestamp']
+                        'timestamp': item['timestamp'],
+                        'queues number':len(queues),
+                        'queue number':len(queue)
                     })
     return status
 
