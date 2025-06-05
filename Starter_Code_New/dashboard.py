@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from threading import Thread
 
+import peer_discovery
 from outbox import get_outbox_status, get_drop_stats, get_capacity
 from peer_manager import peer_status, rtt_tracker, get_peer_status, get_peer_latency, is_peer_blacklisted, blacklist
 from transaction import get_recent_transactions, tx_pool
@@ -20,8 +21,8 @@ def start_dashboard(peer_id, port):
     global blockchain_data_ref, known_peers_ref, peer_config_ref, self_id
     self_id = peer_id
     blockchain_data_ref = received_blocks
-    known_peers_ref = known_peers
-    peer_config_ref = peer_config
+    known_peers_ref = peer_discovery.known_peers  # Use module reference
+    peer_config_ref = peer_discovery.peer_config  # Use module reference
     def run():
         app.run(host="0.0.0.0", port=port)
     Thread(target=run, daemon=True).start()
@@ -35,8 +36,16 @@ def blocks():
     # TODO: display the blocks in the local blockchain.
     try:
         # 确保 peer_config_ref 和 self_id 有效
+        print(f"[DASHBOARD] Self ID: {self_id}", flush=True)
+        print(f"[DASHBOARD] Peer config ref: {peer_config_ref}", flush=True)
+
         if not peer_config_ref or not self_id:
-            return jsonify({"error": "Configuration not initialized1 with id: ","peer_config_ref":peer_config_ref}), 500
+            return jsonify({
+                "error": "Configuration not initialized",
+                "self_id": self_id,
+                "peer_config_ref": bool(peer_config_ref),
+                "peer_count": len(peer_config_ref) if peer_config_ref else 0
+            }), 500
 
         # 确保节点配置存在
         peer_config = peer_config_ref.get(self_id, {})

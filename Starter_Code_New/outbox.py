@@ -235,6 +235,7 @@ def apply_network_conditions(send_func):
         if random.random() < DROP_PROB:
             msg_type = json.loads(message).get('type', 'OTHER')
             drop_stats[msg_type] += 1
+            print("drop the package")
             return False
         # TODO: Add a random latency before sending the message to simulate message transmission delay.
         latency = random.uniform(*LATENCY_MS) / 1000.0
