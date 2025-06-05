@@ -47,6 +47,10 @@ def blocks():
                 "peer_count": len(peer_config_ref) if peer_config_ref else 0
             }), 500
 
+        if not isinstance(received_blocks, list):  # 只检查类型，不检查是否为空
+            print(f"[DASHBOARD] Invalid blockchain type: {type(received_blocks)}", flush=True)
+            return jsonify({"error": "Blockchain not initialized for not instance list"}), 500
+
         # 确保节点配置存在
         peer_config = peer_config_ref.get(self_id, {})
         is_light = peer_config.get("light", False)
@@ -64,8 +68,8 @@ def blocks():
             })
         else:
             # 全节点模式 - 使用完整区块
-            if not received_blocks or not isinstance(received_blocks, list):
-                return jsonify({"error": "Blockchain not initialized2"}), 500
+            # if not received_blocks :
+            #     return jsonify({"error": "Blockchain not initialized2"}), 500
 
             blocks = []
             for block in received_blocks:

@@ -76,6 +76,8 @@ def block_generation(self_id, MALICIOUS_MODE, interval=20):
             try:
                 # 等待区块链初始化
                 if not received_blocks:
+                    print(f"[{self_id}] Creating genesis block")
+                    genesis_block = create_dummy_block(self_id, MALICIOUS_MODE, genesis=True)
                     time.sleep(5)
                     continue
 
@@ -101,13 +103,21 @@ def block_generation(self_id, MALICIOUS_MODE, interval=20):
     print(f"[{self_id}] Block generation started", flush=True)
 
 
-def create_dummy_block(peer_id, MALICIOUS_MODE):
+def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
 
     # TODO: Define the JSON format of a `block`, which should include `{message type, peer's ID, timestamp, block ID, previous block's ID, and transactions}`. 
     # The `block ID` is the hash value of block structure except for the item `block ID`. 
     # `previous block` is the last block in the blockchain, to which the new block will be linked. 
     # If the block generator is malicious, it can generate random block ID.
     # 获取交易池中的交易
+    if genesis:
+        # 创世区块
+        return Block(
+            creator=peer_id,
+            transactions=[],
+            prev_hash="0" * 64,  # 创世区块没有前一个区块
+            timestamp=time.time()
+        )
     transactions = get_recent_transactions()
     # 确定前一个区块哈希
     prev_hash = received_blocks[-1].hash if received_blocks else "0" * 64

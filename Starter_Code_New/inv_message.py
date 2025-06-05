@@ -40,11 +40,11 @@ def broadcast_inventory(self_id):
         inventory = get_inventory(self_id)
 
         # 创建INV消息
-        inv_msg = create_inv(self_id, inventory)
+        inv_msg = create_inv(str(self_id), inventory)
 
         # 广播给所有已知节点
         print(f"[{self_id}] Broadcasting inventory: {len(inventory)} blocks", flush=True)
-        gossip_message(self_id, inv_msg)
+        gossip_message(str(self_id), inv_msg)
 
     except Exception as e:
         print(f"[{self_id}] Inventory broadcast error: {e}", flush=True)

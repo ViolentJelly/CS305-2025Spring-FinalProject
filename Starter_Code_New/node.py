@@ -21,6 +21,7 @@ from transaction import transaction_generation
 def main():
 
     # Import the peer's configuration from command line
+    from block_handler import received_blocks
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", required=True)
@@ -34,12 +35,22 @@ def main():
 
     print(f"[{self_id}] Starting node...", flush=True)
 
+
+
     with open(args.config) as f:
         config = json.load(f)
 
     # 更新 peer_discovery 模块中的全局变量
     peer_discovery.peer_config = config["peers"]
     self_info = config["peers"][self_id]
+
+    received_blocks.clear()
+    # 创建创世区块
+    if not self_info.get('light', False):
+        from block_handler import create_dummy_block
+        genesis_block = create_dummy_block(self_id, MALICIOUS_MODE, genesis=True)
+        received_blocks.append(genesis_block)
+        print(f"[{self_id}] Created genesis block: {genesis_block.hash}")
 
     peer_flags[self_id] = {
         "nat": self_info.get("nat", False),
