@@ -54,6 +54,17 @@ class Block:
 
 def request_block_sync(self_id):
     # TODO: Define the JSON format of a `GET_BLOCK_HEADERS`, which should include `{message type, sender's ID}`.
+
+    if peer_config.get(self_id, {}).get('light', False):
+        get_headers_msg = {
+            "type": "GET_BLOCK_HEADERS",
+            "sender": self_id,
+            "message_id": generate_message_id()
+        }
+        # 发送给所有已知全节点
+        for peer_id, (ip, port) in known_peers.items():
+            if not peer_flags.get(peer_id, {}).get('light', False):
+                enqueue_message(peer_id, ip, port, get_headers_msg)
     """请求区块头同步"""
     get_headers_msg = {
         "type": "GET_BLOCK_HEADERS",
@@ -70,26 +81,32 @@ def request_block_sync(self_id):
 
 def block_generation(self_id, MALICIOUS_MODE, interval=100):
     from inv_message import create_inv
+    from outbox import gossip_message
     def mine():
     # TODO: Create a new block periodically using the function `create_dummy_block`.
         while True:
             try:
                 # 等待区块链初始化
                 if not received_blocks:
-                    print(f"[{self_id}] Creating genesis block")
-                    genesis_block = create_dummy_block(self_id, MALICIOUS_MODE, genesis=True)
-                    receive_block(genesis_block, self_id)  # 添加到区块链
+                    # print(f"[{self_id}] Creating genesis block")
+                    # genesis_block = create_dummy_block(self_id, MALICIOUS_MODE, genesis=True)
+                    # receive_block(genesis_block, self_id)  # 添加到区块链
                     time.sleep(5)
                     continue
 
                 # 创建新区块
-                new_block = create_dummy_block(self_id, MALICIOUS_MODE)
+                new_block = create_dummy_block(str(self_id), MALICIOUS_MODE)
+
+                if new_block is None:
+                    print(f"[{self_id}] No transactions to create block, waiting...")
+                    time.sleep(10)
+                    continue
                 # TODO: Create an `INV` message for the new block using the function `create_inv` in `inv_message.py`.
                 # 创建INV消息并广播
-                inv_msg = create_inv(self_id, [new_block.hash])
+                inv_msg = create_inv(str(self_id), [new_block.hash])
 
                 # TODO: Broadcast the `INV` message to known peers using the function `gossip` in `outbox.py`.
-                gossip_message(self_id, inv_msg)
+                gossip_message(str(self_id), inv_msg)
 
                 print(f"[{self_id}] Mined block: {new_block.hash}", flush=True)
 
@@ -120,6 +137,8 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
             timestamp=time.time()
         )
     transactions = get_recent_transactions()
+    if not transactions:
+        return None
     # 确定前一个区块哈希
     prev_hash = received_blocks[-1].hash if received_blocks else "0" * 64
     # 创建区块
