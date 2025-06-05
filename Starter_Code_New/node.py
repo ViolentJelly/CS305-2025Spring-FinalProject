@@ -48,7 +48,7 @@ def main():
     # 创建创世区块
     if not self_info.get('light', False):
         from block_handler import create_dummy_block
-        genesis_block = create_dummy_block(self_id, MALICIOUS_MODE, genesis=True)
+        genesis_block = create_dummy_block(str(self_id), MALICIOUS_MODE, genesis=True)
         received_blocks.append(genesis_block)
         print(f"[{self_id}] Created genesis block: {genesis_block.hash}")
 
@@ -94,6 +94,11 @@ def main():
         print(f"[{self_id}] Starting transaction and block generation", flush=True)
         transaction_generation(self_id)
         block_generation(self_id, MALICIOUS_MODE)
+    else:  # 轻节点添加创世区块
+        from block_handler import create_dummy_block
+        genesis_block = create_dummy_block(str(self_id), False, genesis=True)
+        received_blocks.append(genesis_block)
+        print(f"[{self_id}] Created genesis header")
 
     print(f"[{self_id}] Starting broadcast inventory thread", flush=True)
     threading.Thread(target=broadcast_inventory, args=(self_id,), daemon=True).start()

@@ -51,23 +51,23 @@ def start_ping_loop(self_id, peer_table):
 
                    # 检查是否在冷却期（避免消息洪泛）
                    last_ping = last_ping_time.get(peer_id, 0)
-                   if current_time - last_ping < 15:  # 每15秒发送一次
-                       continue
+                   # if current_time - last_ping < 15:  # 每15秒发送一次
+                   #     continue
 
        # TODO: Send a `ping` message to each known peer periodically.
                        # 更新最后PING时间
-                       last_ping_time[peer_id] = current_time
+                   last_ping_time[peer_id] = current_time
 
-                       # 构建PING消息
-                       ping_msg = {
-                           "type": "PING",
-                           "sender": self_id,
-                           "timestamp": current_time,
-                           "message_id": generate_message_id()
-                       }
+                   # 构建PING消息
+                   ping_msg = {
+                       "type": "PING",
+                       "sender": self_id,
+                       "timestamp": current_time,
+                       "message_id": generate_message_id()
+                   }
 
-                       # 添加到发送队列
-                       enqueue_message(peer_id, ip, port, ping_msg)
+                   # 添加到发送队列
+                   enqueue_message(peer_id, ip, port, ping_msg)
 
                    # 每10秒检查一次
                time.sleep(10)
@@ -93,8 +93,10 @@ def handle_pong(msg):
     # TODO: Read the information in the received `pong` message.
     try:
         sender_id = msg["sender"]
-        ping_time = msg["ping_timestamp"]
-        pong_time = msg["pong_timestamp"]
+        # ping_time = msg["ping_timestamp"]
+        # pong_time = msg["pong_timestamp"]
+        ping_time = msg["timestamp"]  # PING发送时间
+        pong_time = time.time()  # PONG接收时间
 
         # 计算RTT（往返时间）
         rtt = pong_time - ping_time
@@ -105,6 +107,7 @@ def handle_pong(msg):
         last_ping_time[sender_id] = pong_time
 
         print(f" PONG from {sender_id} - RTT: {rtt:.3f}s", flush=True)
+        print(f"[Monitor] Received PONG from {sender_id} - RTT: {rtt:.3f}s")
 
     except KeyError as e:
         print(f" Invalid PONG message: missing {e}", flush=True)
@@ -121,27 +124,29 @@ def start_peer_monitor():
         # TODO: Check the latest time to receive `ping` or `pong` message from each peer in `last_ping_time`.
         """监控节点状态，标记不可达节点"""
         while True:
-            try:
-                current_time = time.time()
+            while True:
+                try:
+                    current_time = time.time()
+                    for peer_id in list(last_ping_time.keys()):
+                        # 跳过自己和黑名单节点
+                        if peer_id in blacklist:
+                            continue
 
-                for peer_id, last_active in list(last_ping_time.items()):
-                    # 跳过自己和黑名单节点
-                    if peer_id == peer_id in blacklist:
-                        continue
+                        last_active = last_ping_time[peer_id]
 
-                    # 检查是否超时
-                    if current_time - last_active > ping_timeout:
-                        peer_status[peer_id] = "UNREACHABLE"
-                        print(f" Peer {peer_id} marked as UNREACHABLE", flush=True)
-                    else:
-                        peer_status[peer_id] = "ALIVE"
+                        # 检查是否超时
+                        if current_time - last_active > ping_timeout:
+                            peer_status[peer_id] = "UNREACHABLE"
+                            print(f"[Monitor] Peer {peer_id} marked as UNREACHABLE")
+                        else:
+                            peer_status[peer_id] = "ALIVE"
 
-                # 每15秒检查一次
-                time.sleep(15)
+                    # 每5秒检查一次
+                    time.sleep(5)
 
-            except Exception as e:
-                print(f" Peer monitor error: {e}", flush=True)
-                time.sleep(10)
+                except Exception as e:
+                    print(f"[Monitor] Peer monitor error: {e}", flush=True)
+                    time.sleep(3)
         # TODO: If the latest time is earlier than the limit, mark the peer's status in `peer_status` as `UNREACHABLE` or otherwise `ALIVE`.
 
         pass
