@@ -68,7 +68,7 @@ def request_block_sync(self_id):
         enqueue_message(peer_id, ip, port, get_headers_msg)
     pass
 
-def block_generation(self_id, MALICIOUS_MODE, interval=20):
+def block_generation(self_id, MALICIOUS_MODE, interval=100):
     from inv_message import create_inv
     def mine():
     # TODO: Create a new block periodically using the function `create_dummy_block`.
@@ -78,6 +78,7 @@ def block_generation(self_id, MALICIOUS_MODE, interval=20):
                 if not received_blocks:
                     print(f"[{self_id}] Creating genesis block")
                     genesis_block = create_dummy_block(self_id, MALICIOUS_MODE, genesis=True)
+                    receive_block(genesis_block, self_id)  # 添加到区块链
                     time.sleep(5)
                     continue
 
