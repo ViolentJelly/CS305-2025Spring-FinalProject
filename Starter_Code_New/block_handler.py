@@ -158,7 +158,7 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
     # TODO: Clear the local transaction pool and add the new block into the local blockchain (`receive_block`).
     # 清空交易池
     clear_pool()
-
+    time.sleep(60)
     # 添加到本地区块链
     receive_block(block, peer_id)
 
