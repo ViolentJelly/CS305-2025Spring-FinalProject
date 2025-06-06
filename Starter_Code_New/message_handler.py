@@ -9,7 +9,7 @@ from utils import generate_message_id
 from peer_discovery import handle_hello_message, known_peers, peer_config, peer_flags
 from block_handler import handle_block, get_block_by_id, create_getblock, received_blocks, header_store, Block, \
     get_block_headers
-from inv_message import create_inv, get_inventory
+from inv_message import create_inv, get_inventory, broadcast_inventory
 from block_handler import create_getblock
 from peer_manager import update_peer_heartbeat, record_offense, create_pong, handle_pong, blacklist
 from transaction import add_transaction, TransactionMessage
@@ -109,6 +109,7 @@ def dispatch_message(msg, self_id, self_ip):
         handle_block(msg, self_id)
         # TODO: Call the function `create_inv` to create an `INV` message for the block.
         inv_msg = create_inv(self_id, [computed_id])
+        # broadcast_inventory(self_id)
         gossip_message(self_id, inv_msg)
         # TODO: Broadcast the `INV` message to known peers using the function `gossip_message` in `outbox.py`.
 

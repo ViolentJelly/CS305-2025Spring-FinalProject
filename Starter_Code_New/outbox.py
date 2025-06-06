@@ -7,17 +7,17 @@ from collections import defaultdict, deque
 from threading import Lock
 
 # === Per-peer Rate Limiting ===
-RATE_LIMIT = 10  # max messages
+RATE_LIMIT = 100  # max messages
 TIME_WINDOW = 10  # per seconds
 peer_send_timestamps = defaultdict(list)  # the timestamps of sending messages to each peer
 
 MAX_RETRIES = 3
 RETRY_INTERVAL = 5  # seconds
-QUEUE_LIMIT = 50
+QUEUE_LIMIT = 500
 
 # Priority levels
-PRIORITY_HIGH = {"PING", "PONG", "BLOCK", "INV"}
-PRIORITY_MEDIUM = {"TX", "HELLO", "GETBLOCK"}
+PRIORITY_HIGH = {"PING", "PONG", "BLOCK", "INV", "GETBLOCK"}
+PRIORITY_MEDIUM = {"TX", "HELLO"}
 PRIORITY_LOW = {"RELAY"}
 
 DROP_PROB = 0.05

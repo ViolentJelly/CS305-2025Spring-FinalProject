@@ -5,6 +5,8 @@ import json
 import threading
 
 # from inv_message import broadcast_inventory
+# from inv_message import create_inv
+# from inv_message import broadcast_inventory
 from transaction import get_recent_transactions, clear_pool, TransactionMessage
 from peer_discovery import known_peers, peer_config, peer_flags
 
@@ -108,7 +110,7 @@ def block_generation(self_id, MALICIOUS_MODE, interval=30):
                 # TODO: Create an `INV` message for the new block using the function `create_inv` in `inv_message.py`.
                 # 创建INV消息并广播
                 inv_msg = create_inv(str(self_id), [new_block.hash])
-                broadcast_inventory(self_id)
+                # broadcast_inventory(self_id)
                 # TODO: Broadcast the `INV` message to known peers using the function `gossip` in `outbox.py`.
                 gossip_message(str(self_id), inv_msg)
 
@@ -126,7 +128,7 @@ def block_generation(self_id, MALICIOUS_MODE, interval=30):
 
 
 def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
-
+    from inv_message import create_inv
     # TODO: Define the JSON format of a `block`, which should include `{message type, peer's ID, timestamp, block ID, previous block's ID, and transactions}`. 
     # The `block ID` is the hash value of block structure except for the item `block ID`. 
     # `previous block` is the last block in the blockchain, to which the new block will be linked. 
@@ -160,6 +162,10 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
     # TODO: Create a new block with the transactions and generate the block ID using the function `compute_block_hash`.
 
     # TODO: Clear the local transaction pool and add the new block into the local blockchain (`receive_block`).
+    from inv_message import broadcast_inventory
+    # inv_msg = create_inv(str(peer_id), [block.hash])
+    # gossip_message(str(peer_id), inv_msg)
+    broadcast_inventory(peer_id)
     # 清空交易池
     clear_pool()
     time.sleep(30)
@@ -191,7 +197,6 @@ def receive_block(block, self_id):
         if block.hash in orphan_blocks:
             for orphan in orphan_blocks[block.hash]:
                 receive_block(orphan, self_id)
-                broadcast_inventory(self_id)
             del orphan_blocks[block.hash]
     else:
         # 添加到孤儿块
@@ -227,7 +232,7 @@ def handle_block(msg, self_id):
 
         # 处理新区块 后两个todo在receive_block里完成
         receive_block(block, self_id)
-        broadcast_inventory(self_id)
+        # broadcast_inventory(self_id)
     except KeyError as e:
         print(f"[{self_id}] Block message missing key: {e}", flush=True)
         record_offense(msg.get("creator", "unknown"))
