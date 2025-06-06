@@ -163,9 +163,11 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
 
     # TODO: Clear the local transaction pool and add the new block into the local blockchain (`receive_block`).
     from inv_message import broadcast_inventory
-    # inv_msg = create_inv(str(peer_id), [block.hash])
+    inv_msg = create_inv(str(peer_id), [block.hash])
     # gossip_message(str(peer_id), inv_msg)
     broadcast_inventory(peer_id)
+    # for peer ,(ip,port)in known_peers.items():
+    #     enqueue_message(peer,ip,port,inv_msg)
     # 清空交易池
     clear_pool()
     time.sleep(30)
@@ -178,6 +180,14 @@ def create_dummy_block(peer_id, MALICIOUS_MODE, genesis=None):
 def receive_block(block, self_id):
     """处理新区块（内部函数）"""
     from inv_message import broadcast_inventory
+    block_exists = (
+            any(b.hash == block.hash for b in received_blocks) or  # 主链中已存在
+            any(any(o.hash == block.hash for o in orphans) for orphans in orphan_blocks.values())  # 孤儿池中已存在
+    )
+
+    if block_exists:
+        print(f"[{self_id}] Block already exists: {block.hash}", flush=True)
+        return
     # 检查前一个区块是否存在
     if block.prev_hash == "0" * 64 or any(b.hash == block.prev_hash for b in received_blocks):
         # 添加到主链
@@ -192,7 +202,7 @@ def receive_block(block, self_id):
                 "timestamp": block.timestamp
             }
             header_store.append(header)
-
+        print("check orphans")
         # 检查是否有依赖此区块的孤儿块
         if block.hash in orphan_blocks:
             for orphan in orphan_blocks[block.hash]:
@@ -200,6 +210,10 @@ def receive_block(block, self_id):
             del orphan_blocks[block.hash]
     else:
         # 添加到孤儿块
+        if block.prev_hash in orphan_blocks:
+            if any(o.hash == block.hash for o in orphan_blocks[block.prev_hash]):
+                print(f"[{self_id}] Orphan block already exists: {block.hash} (prev: {block.prev_hash})", flush=True)
+                return
         orphan_blocks.setdefault(block.prev_hash, []).append(block)
         print(f"[{self_id}] Added orphan block: {block.hash} (prev: {block.prev_hash})", flush=True)
 

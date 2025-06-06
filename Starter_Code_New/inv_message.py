@@ -39,10 +39,11 @@ def broadcast_inventory(self_id):
     try:
         # 获取本地库存
         inventory = get_inventory(self_id)
-
-        # 创建INV消息
-        inv_msg = create_inv(str(self_id), inventory)
-
+        if len(inventory)>10:
+            choose_inventory = inventory[-10:-1]
+            inv_msg = create_inv(str(self_id), choose_inventory)
+        else:
+            inv_msg = create_inv(str(self_id), inventory)
         # 广播给所有已知节点
         print(f"[{self_id}] Broadcasting inventory: {len(inventory)} blocks", flush=True)
         gossip_message(str(self_id), inv_msg)

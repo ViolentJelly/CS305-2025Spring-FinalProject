@@ -54,7 +54,8 @@ def main():
 
     peer_flags[self_id] = {
         "nat": self_info.get("nat", False),
-        "light": self_info.get("light", False)
+        "light": self_info.get("light", False),
+        "localnetworkid": self_info.get("localnetworkid",3)
     }
 
     for peer_id, peer_info in config["peers"].items():
@@ -62,7 +63,8 @@ def main():
         # peer_config = config["peers"]
         peer_discovery.peer_flags[peer_id] = {
             "nat": peer_info.get("nat", False),
-            "light": peer_info.get("light", False)
+            "light": peer_info.get("light", False),
+            "localnetworkid": self_info.get("localnetworkid", 4)
         }
 
     if args.fanout:

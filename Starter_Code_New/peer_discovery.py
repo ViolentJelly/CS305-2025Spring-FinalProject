@@ -31,7 +31,7 @@ def start_peer_discovery(self_id, self_info):
                         "nat": self_info.get("nat", False),
                         "light": self_info.get("light", False)
                     },
-                    "localnetworkid": local_network_id,
+                    "localnetworkid": self_info.get("localnetworkid",5),
                     "message_id": generate_message_id()
                 }
 

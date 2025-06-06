@@ -4,7 +4,7 @@ import time
 import json
 from message_handler import dispatch_message
 
-RECV_BUFFER = 4096
+RECV_BUFFER = 8192
 buffer = b''
 def start_socket_server(self_id, self_ip, port):
 
