@@ -192,16 +192,19 @@ def receive_block(block, self_id):
     if block.prev_hash == "0" * 64 or any(b.hash == block.prev_hash for b in received_blocks):
         # 添加到主链
         received_blocks.append(block)
-        print(f"[{self_id}] Added block to chain: {block.hash}", flush=True)
 
+        print(f"[{self_id}] Added block to chain: {block.hash}", flush=True)
         # 如果是轻节点，只存储区块头
-        if peer_config[self_id].get("light", False):
-            header = {
-                "hash": block.hash,
-                "prev_hash": block.prev_hash,
-                "timestamp": block.timestamp
-            }
-            header_store.append(header)
+        try:
+            if peer_flags[self_id].get("light", False):
+                header = {
+                    "hash": block.hash,
+                    "prev_hash": block.prev_hash,
+                    "timestamp": block.timestamp
+                }
+                header_store.append(header)
+        except Exception as e:
+            print(f"[{self_id}] light block handling error: {e}", flush=True)
         print("check orphans")
         # 检查是否有依赖此区块的孤儿块
         if block.hash in orphan_blocks:

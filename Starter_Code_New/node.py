@@ -64,7 +64,7 @@ def main():
         peer_discovery.peer_flags[peer_id] = {
             "nat": peer_info.get("nat", False),
             "light": peer_info.get("light", False),
-            "localnetworkid": self_info.get("localnetworkid", 4)
+            "localnetworkid": peer_info.get("localnetworkid", 0)
         }
 
     if args.fanout:
